@@ -21,13 +21,130 @@ This template demonstrates how to deploy a Go function running on AWS Lambda usi
 
 > **_NOTE:_** `go1.x` runtime will be deprecated on Dec 31, 2023. See https://docs.aws.amazon.com/lambda/latest/dg/lambda-golang.html#golang-al1
 
+#### Get started
+
+First create devenv environment
+
+```bash
+devevn init
+```
+
+and make sure you have the following configuration
+
+```
+{ pkgs, ... }:
+
+{
+  packages = [
+    pkgs.git
+    pkgs.nodePackages.serverless
+  ];
+
+  languages.nix.enable = true;
+  languages.go.enable = true;
+}
+
+```
+First we need to temporary rename our current `.gitignore` file (merge the content
+later yourself).
+
+```bash
+mv .gitignore .gitignore.devenv
+```
+
+
+Next we want to create a serverless scaffold functions
+
+```bash
+sls create --template aws-go --name hello
+```
+
+and move Lambda functions to `functions` folder. This is just a presonal preference so that
+we immediately know where lambda functions live and where the rest of the code lives.
+
+```bash
+mkdir functions
+mv hello world functions
+```
+
+```bash
+go mod init hello-world
+go mod tidy
+```
+
+Lastly you need to update Makefile because we've moved our Lambda functions to the
+`functions` folder, soo add `functions/` brefore `hello/main.go` and `world/main.go`.
+
+`Makefile`` content should look like this:
+
+```
+.PHONY: build clean deploy
+
+build:
+	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/hello functions/hello/main.go
+	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/world functions/world/main.go
+
+clean:
+	rm -rf ./bin
+
+deploy: clean build
+	sls deploy --verbose
+
+```
+#### Deployment
+
+In order to deploy the example, you need to run the following command:
+
+```bash
+make deploy
+```
+
+After running deploy, you should see output similar to:
+
+```bash
+✔ Service deployed to stack hello-dev (100s)
+
+endpoints:
+  GET - https://q8npk61n15.execute-api.us-east-1.amazonaws.com/hello
+  GET - https://q8npk61n15.execute-api.us-east-1.amazonaws.com/world
+functions:
+  hello: hello-dev-hello (5.3 MB)
+  world: hello-dev-world (5.3 MB)
+
+Stack Outputs:
+  HelloLambdaFunctionQualifiedArn: arn:aws:lambda:us-east-1:276131759979:function:hello-dev-hello:1
+  HttpApiId: q8npk61n15
+  WorldLambdaFunctionQualifiedArn: arn:aws:lambda:us-east-1:276131759979:function:hello-dev-world:1
+  ServerlessDeploymentBucketName: hello-dev-serverlessdeploymentbucket-6uu8qfr899kr
+  HttpApiUrl: https://q8npk61n15.execute-api.us-east-1.amazonaws.com
+```
+
+You can run your functions with e.g. `curl` or `sls invoke`.
+
+Example:
+
+```bash
+$ curl --request GET https://d2qr26ruj3.execute-api.us-east-1.amazonaws.com/hello
+{"message":"Go Serverless v1.0! Your function executed successfully!"}% 
+```
+
+```bash
+$ sls invoke --function hello
+{
+    "statusCode": 200,
+    "headers": {
+        "Content-Type": "application/json",
+        "X-MyCompany-Func-Reply": "hello-handler"
+    },
+    "multiValueHeaders": null,
+    "body": "{\"message\":\"Go Serverless v1.0! Your function executed successfully!\"}"
+}
+```
+
 #### Configuration
 
 Serverless tool helps us to bootstrap a bit of Go code, Makefile with a few essential commands and the [`serverless.yml`](https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml) file where all lambda configuration is defined.
 
-```bash
-sls create --template aws-go --name hello --path hello
-```
 
 Here is a minimalistic example of the serverless.yml configuration:
 
@@ -64,46 +181,7 @@ Next we have a section where we define our [functions](https://www.serverless.co
 
 [Events](https://www.serverless.com/framework/docs/providers/aws/guide/events) are the things that trigger our function. We are using [HTTP API v2](https://www.serverless.com/framework/docs/providers/aws/events/http-api).
 
-In the [`package`](https://www.serverless.com/framework/docs/providers/aws/guide/packaging) section we define what to include and what to exclude from the resulting artifact located in `<service-name>/.serverless/<service-name>.zip` (e.g. `hello/.serverless/hello.zip`).
-
-#### Code
-
-Go code is located in the root folder. All Lambda functions are in `functions` folder.
-
-#### Deployment
-
-In order to deploy the example, you need to run the following command:
-
-```bash
-$ cd hello
-# aws-go template doesn't have go.mod and go.sum files
-$ go mod init hello-world
-...
-$ go mod tidy
-...
-$ make deploy
-...
-```
-
-After running deploy, you should see output similar to:
-
-```bash
-✔ Service deployed to stack hello-dev (100s)
-
-endpoints:
-  GET - https://q8npk61n15.execute-api.us-east-1.amazonaws.com/hello
-  GET - https://q8npk61n15.execute-api.us-east-1.amazonaws.com/world
-functions:
-  hello: hello-dev-hello (5.3 MB)
-  world: hello-dev-world (5.3 MB)
-
-Stack Outputs:
-  HelloLambdaFunctionQualifiedArn: arn:aws:lambda:us-east-1:276131759979:function:hello-dev-hello:1
-  HttpApiId: q8npk61n15
-  WorldLambdaFunctionQualifiedArn: arn:aws:lambda:us-east-1:276131759979:function:hello-dev-world:1
-  ServerlessDeploymentBucketName: hello-dev-serverlessdeploymentbucket-6uu8qfr899kr
-  HttpApiUrl: https://q8npk61n15.execute-api.us-east-1.amazonaws.com
-```
+In the [`package`](https://www.serverless.com/framework/docs/providers/aws/guide/packaging) section we define what to include and what to exclude from the resulting artifact.
 
 #### Development
 
@@ -113,38 +191,6 @@ Skip the `sls deploy` command which is much slower since it triggers a full AWS 
 
 ```bash
 sls deploy function --function hello
-```
-
-#### Invocation
-
-After successful deployment, you can invoke (i.e. run) the deployed function by using the following command:
-
-```bash
-sls invoke --function hello
-```
-
-Which should result in response similar to the following:
-
-```json
-{
-    "statusCode": 200,
-    "headers": {
-        "Content-Type": "application/json",
-        "X-MyCompany-Func-Reply": "hello-handler"
-    },
-    "multiValueHeaders": null,
-    "body": "{\"message\":\"Go Serverless v1.0! Your function executed successfully!\"}"
-}
-```
-
-#### Local development
-
-For local development you will need to run docker.
-
-You can invoke your function locally by using the following command:
-
-```bash
-sls invoke local --function hello
 ```
 
 
