@@ -23,13 +23,13 @@ This template demonstrates how to deploy a Go function running on AWS Lambda usi
 
 #### Get started
 
-First create devenv environment
+Create devenv environment
 
 ```bash
 devevn init
 ```
 
-and make sure you have the following configuration
+and make sure you have the following configuration.
 
 ```
 { pkgs, ... }:
@@ -45,21 +45,21 @@ and make sure you have the following configuration
 }
 
 ```
-First we need to temporary rename our current `.gitignore` file (merge the content
-later yourself).
+Rename `.gitignore` file because it will create a conflict with the one `serverless`
+creates (merge the content later yourself).
 
 ```bash
 mv .gitignore .gitignore.devenv
 ```
 
 
-Next we want to create a serverless scaffold functions
+Next we want to create our serverless scaffold functions.
 
 ```bash
 sls create --template aws-go --name hello
 ```
 
-and move Lambda functions to `functions` folder. This is just a presonal preference so that
+Move them to the `functions` folder. This is just a personal preference so that
 we immediately know where lambda functions live and where the rest of the code lives.
 
 ```bash
@@ -67,13 +67,15 @@ mkdir functions
 mv hello world functions
 ```
 
+Create go.mod and go.sum.
+
 ```bash
 go mod init hello-world
 go mod tidy
 ```
 
-Lastly you need to update Makefile because we've moved our Lambda functions to the
-`functions` folder, soo add `functions/` brefore `hello/main.go` and `world/main.go`.
+Lastly, you need to update Makefile because we've moved our Lambda functions to the
+`functions` folder, so add `functions/` before `hello/main.go` and `world/main.go`.
 
 `Makefile`` content should look like this:
 
