@@ -30,3 +30,8 @@ devenv.local.nix
 # pre-commit
 .pre-commit-config.yaml
 
+# Serverless directories
+.serverless
+
+# golang output binary directory
+bin

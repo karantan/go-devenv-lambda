@@ -68,8 +68,7 @@ In the [`package`](https://www.serverless.com/framework/docs/providers/aws/guide
 
 #### Code
 
-Go code is located in the `<service-name>` folder (in our case `hello` folder). Technically we could have all code and serverless configuration in the root directory but this way we can easily add more lambda services. Also the `serverless.yml` file would have more things in the `package` section because we would need to exclude more things.
-
+Go code is located in the root folder. All Lambda functions are in `functions` folder.
 
 #### Deployment
 

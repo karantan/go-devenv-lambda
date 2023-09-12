@@ -12,13 +12,12 @@
   languages.go.enable = true;
 
   # https://devenv.sh/pre-commit-hooks/
-  pre-commit = {
-    hooks.shellcheck.enable = true;
-    # hooks.nixpkgs-fmt.enable = true;
-    # hooks.revive.enable = true; # go lint https://github.com/mgechev/revive
-    # hooks.govet.enable = true;
-    # hooks.gotest.enable = true;
-  };
+  # pre-commit = {
+  #   hooks.nixpkgs-fmt.enable = true;
+  #   hooks.revive.enable = true; # go lint https://github.com/mgechev/revive
+  #   hooks.govet.enable = true;
+  #   hooks.gotest.enable = true;
+  # };
 
   # https://devenv.sh/scripts/
   # scripts.deploy.exec = "sls deploy";
