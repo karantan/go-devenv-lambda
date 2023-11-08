@@ -26,7 +26,7 @@ This template demonstrates how to deploy a Go function running on AWS Lambda usi
 Create devenv environment
 
 ```bash
-devevn init
+devenv init
 ```
 
 and make sure you have the following configuration.
